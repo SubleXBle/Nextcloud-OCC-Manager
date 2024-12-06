@@ -51,7 +51,7 @@ The script uses color coding to help differentiate between different types of me
 
 ## Installation and Usage:
 ```bash
-wget https://raw.githubusercontent.com/SubleXBle/Nextcloud-OCC-Manager/occ-tool.sh && chmod +x occ-tool.sh
+wget https://raw.githubusercontent.com/SubleXBle/Nextcloud-OCC-Manager/latest/occ-tool.sh && chmod +x occ-tool.sh
 ```
 Dependencies:
 The script assumes that Nextcloud is installed and the occ tool is available.
