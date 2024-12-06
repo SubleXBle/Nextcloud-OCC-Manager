@@ -1,164 +1,163 @@
 #!/bin/bash
 
-# Color codes
+# Farbcodes für die Ausgabe
 NORMAL='\033[0;39m'
 GREEN='\033[1;32m'
 RED='\033[1;31m'
 YELLOW='\033[33m'
 BLUE='\033[34m'
 
-# Log file paths
-LOGFILE="/var/log/nextcloud_maintenance.log"
-ERRORLOG="/var/log/nextcloud_error.log"
-
-# Nextcloud installation path
+# Path zur Nextcloud-Installation (muss angepasst werden)
 NEXTCLOUD_PATH="/var/www/nextcloud"
 
-# Function definitions
-echo_success() {
-    echo -e "${GREEN}$1${NORMAL}"
-}
+# Logdateien
+LOGFILE="/var/log/nextcloud_maintenance.log"
+ERROR_LOGFILE="/var/log/nextcloud_error.log"
 
-echo_error() {
-    echo -e "${RED}$1${NORMAL}"
-}
-
+# Funktion, um OCC-Befehle auszuführen und die Ausgabe sowohl anzuzeigen als auch in das Logfile zu schreiben
 run_occ_command() {
-    local command=$1
-    local logfile=$2
-    local errorlog=$3
-
-    echo "Executing command: $command"
-    sudo -u www-data php $NEXTCLOUD_PATH/occ $command >> $logfile 2>> $errorlog
-
-    if [ $? -ne 0 ]; then
-        echo_error "Error executing command: $command. See the logfile for more details."
-    else
-        echo_success "Command successfully executed: $command" | tee -a $logfile
-    fi
+    sudo -u www-data php "$NEXTCLOUD_PATH/occ" "$@" | tee -a "$LOGFILE"
 }
 
-# Display main menu
-show_menu() {
-    echo -e "${BLUE}Nextcloud OCC Command Menu${NORMAL}"
-    echo "1) User Management"
-    echo "2) App Management"
-    echo "3) Set Configuration Values"
-    echo "4) View Logs"
-    echo "5) Exit Script"
-    echo -n "Choose an option (1-5): "
+# Funktion, um Fehlerprotokolle zu erstellen
+log_error() {
+    echo -e "${RED}Error: $1${NORMAL}"
+    echo "$(date) - $1" | tee -a "$ERROR_LOGFILE"
 }
 
-# User management menu
-user_management() {
-    echo -e "${YELLOW}User Management${NORMAL}"
-    echo "1) Add user"
-    echo "2) Delete user"
-    echo "3) List users"
-    echo -n "Choose an option (1-3): "
-    read user_choice
-
-    case $user_choice in
-        1)
-            read -p "Enter the username: " username
-            read -p "Enter the email address: " email
-            command="user:add $username $email"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        2)
-            read -p "Enter the username to delete: " username
-            command="user:delete $username"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        3)
-            command="user:list"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        *)
-            echo_error "Invalid choice."
-            ;;
-    esac
-}
-
-# App management menu
-app_management() {
-    echo -e "${YELLOW}App Management${NORMAL}"
-    echo "1) Install app"
-    echo "2) Remove app"
-    echo "3) Update app"
-    echo -n "Choose an option (1-3): "
-    read app_choice
-
-    case $app_choice in
-        1)
-            read -p "Enter the app name: " app_name
-            command="app:install $app_name"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        2)
-            read -p "Enter the app name: " app_name
-            command="app:remove $app_name"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        3)
-            read -p "Do you want to update a specific app? (yes/no): " update_choice
-            if [ "$update_choice" == "yes" ]; then
-                read -p "Enter the app name: " app_name
-                command="app:update $app_name"
-            else
-                command="app:update --all"
-            fi
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        *)
-            echo_error "Invalid choice."
-            ;;
-    esac
-}
-
-# Set configuration values menu
-set_config_values() {
-    echo -e "${YELLOW}Set Configuration Values${NORMAL}"
-    echo "1) Storage settings"
-    echo "2) System maintenance"
-    echo -n "Choose an option (1-2): "
-    read config_choice
-
-    case $config_choice in
-        1)
-            read -p "Enter the new max upload size (in MB): " upload_size
-            command="config:system:set upload_max_filesize --value=${upload_size}M"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        2)
-            read -p "Enter the maintenance mode (true/false): " maintenance_mode
-            command="config:system:set maintenance --value=$maintenance_mode"
-            run_occ_command "$command" "$LOGFILE" "$ERRORLOG"
-            ;;
-        *)
-            echo_error "Invalid choice."
-            ;;
-    esac
-}
-
-# View logs
-view_logs() {
-    echo -e "${YELLOW}View Logs${NORMAL}"
-    tail -n 50 $LOGFILE
-    tail -n 50 $ERRORLOG
-}
-
-# Main program loop
+# Menüstruktur
 while true; do
-    show_menu
-    read choice
+    clear
+    echo -e "${BLUE}Nextcloud OCC Command Manager${NORMAL}"
+    echo -e "${GREEN}1. User Management${NORMAL}"
+    echo -e "${GREEN}2. App Management${NORMAL}"
+    echo -e "${GREEN}3. Configuration Settings${NORMAL}"
+    echo -e "${GREEN}4. View Logs${NORMAL}"
+    echo -e "${GREEN}5. Exit${NORMAL}"
+    read -p "Please choose an option: " choice
 
     case $choice in
-        1) user_management ;;
-        2) app_management ;;
-        3) set_config_values ;;
-        4) view_logs ;;
-        5) echo "Exiting script."; exit 0 ;;
-        *) echo_error "Invalid selection. Please choose a number between 1 and 5." ;;
+        1)
+            # Benutzerverwaltung
+            echo -e "${BLUE}User Management${NORMAL}"
+            echo -e "${GREEN}1. Add User${NORMAL}"
+            echo -e "${GREEN}2. Delete User${NORMAL}"
+            echo -e "${GREEN}3. List Users${NORMAL}"
+            read -p "Please choose an option: " user_choice
+            case $user_choice in
+                1)
+                    read -p "Enter the username: " username
+                    read -p "Enter the email address: " email
+                    run_occ_command user:add "$username" "$email"
+                    ;;
+                2)
+                    read -p "Enter the username to delete: " username
+                    run_occ_command user:delete "$username"
+                    ;;
+                3)
+                    run_occ_command user:list
+                    ;;
+                *)
+                    log_error "Invalid option selected for User Management."
+                    ;;
+            esac
+            ;;
+        2)
+            # App-Verwaltung
+            echo -e "${BLUE}App Management${NORMAL}"
+            echo -e "${GREEN}1. Install App${NORMAL}"
+            echo -e "${GREEN}2. Remove App${NORMAL}"
+            echo -e "${GREEN}3. Update App${NORMAL}"
+            read -p "Please choose an option: " app_choice
+            case $app_choice in
+                1)
+                    read -p "Enter the app name to install: " app_name
+                    run_occ_command app:install "$app_name"
+                    ;;
+                2)
+                    read -p "Enter the app name to remove: " app_name
+                    run_occ_command app:remove "$app_name"
+                    ;;
+                3)
+                    echo -e "${GREEN}1. Update a specific app${NORMAL}"
+                    echo -e "${GREEN}2. Update all apps${NORMAL}"
+                    read -p "Please choose an option: " app_update_choice
+                    case $app_update_choice in
+                        1)
+                            read -p "Enter the app name to update: " app_name
+                            run_occ_command app:update "$app_name"
+                            ;;
+                        2)
+                            run_occ_command app:update --all
+                            ;;
+                        *)
+                            log_error "Invalid option selected for App Update."
+                            ;;
+                    esac
+                    ;;
+                *)
+                    log_error "Invalid option selected for App Management."
+                    ;;
+            esac
+            ;;
+        3)
+            # Konfigurationsverwaltung
+            echo -e "${BLUE}Configuration Settings${NORMAL}"
+            echo -e "${GREEN}1. Set Max Upload File Size${NORMAL}"
+            echo -e "${GREEN}2. Enable/Disable Maintenance Mode${NORMAL}"
+            read -p "Please choose an option: " config_choice
+            case $config_choice in
+                1)
+                    read -p "Enter the max upload file size in MB: " size
+                    run_occ_command config:system:set php.memory_limit --value="$size"
+                    ;;
+                2)
+                    echo -e "${GREEN}1. Enable Maintenance Mode${NORMAL}"
+                    echo -e "${GREEN}2. Disable Maintenance Mode${NORMAL}"
+                    read -p "Please choose an option: " maintenance_choice
+                    case $maintenance_choice in
+                        1)
+                            run_occ_command maintenance:mode --on
+                            ;;
+                        2)
+                            run_occ_command maintenance:mode --off
+                            ;;
+                        *)
+                            log_error "Invalid option selected for Maintenance Mode."
+                            ;;
+                    esac
+                    ;;
+                *)
+                    log_error "Invalid option selected for Configuration Settings."
+                    ;;
+            esac
+            ;;
+        4)
+            # Logs anzeigen
+            echo -e "${BLUE}View Logs${NORMAL}"
+            echo -e "${GREEN}1. View General Log${NORMAL}"
+            echo -e "${GREEN}2. View Error Log${NORMAL}"
+            read -p "Please choose an option: " log_choice
+            case $log_choice in
+                1)
+                    cat "$LOGFILE"
+                    ;;
+                2)
+                    cat "$ERROR_LOGFILE"
+                    ;;
+                *)
+                    log_error "Invalid option selected for View Logs."
+                    ;;
+            esac
+            ;;
+        5)
+            # Beenden
+            echo -e "${GREEN}Exiting the script...${NORMAL}"
+            exit 0
+            ;;
+        *)
+            log_error "Invalid option selected."
+            ;;
     esac
+    read -p "Press any key to return to the main menu..." -n 1 -s
 done
