@@ -50,6 +50,9 @@ The script uses color coding to help differentiate between different types of me
 + Blue: Headers or menu options for clarity.
 
 ## Installation and Usage:
+```bash
+wget https://raw.githubusercontent.com/SubleXBle/ && chmod +x occ-tool.sh
+```
 Dependencies:
 The script assumes that Nextcloud is installed and the occ tool is available.
 It requires access to the Nextcloud installation directory and must be run with sudo privileges to execute commands under the www-data user (or whichever user your web server runs as).
