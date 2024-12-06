@@ -3,9 +3,6 @@ Tool for Nextcloud Administrators to make it easier to interact with Nextclouds 
 
 This Bash script is designed to interact with Nextcloud's occ (OwnCloud Command) tool, which is used for managing various administrative tasks within a Nextcloud installation. The script provides a user-friendly, menu-driven interface that allows administrators to perform common Nextcloud tasks without directly typing OCC commands in the terminal. It automates the process by prompting users for necessary input and running the appropriate commands under the www-data user, which is the typical web server user for Nextcloud.
 
-## ⚠️ Use on your own risk!
-Even if I use it myself on the production installation, you use this script without warranty and on your own risk
-
 ## Features:
 ### User Management:
 
@@ -80,3 +77,6 @@ After confirming the inputs, the script will run the occ user:add command under 
 
 ## Summary:
 This script is a versatile tool for Nextcloud administrators, making it easier to interact with the Nextcloud occ command-line interface through an interactive, menu-driven interface. It streamlines common administrative tasks, such as managing users, installing/removing apps, and adjusting configuration values. The integration of logging and color-coded outputs enhances its usability and troubleshooting capabilities.
+
+## ⚠️ Use on your own risk!
+Even if I use it myself on the production installation, you use this script without warranty and on your own risk
