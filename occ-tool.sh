@@ -1,31 +1,31 @@
 #!/bin/bash
 
-# Farbcodes für die Ausgabe
+# Color codes for output
 NORMAL='\033[0;39m'
 GREEN='\033[1;32m'
 RED='\033[1;31m'
 YELLOW='\033[33m'
 BLUE='\033[34m'
 
-# Path zur Nextcloud-Installation (muss angepasst werden)
+# Path to Nextcloud installation (must be adjusted)
 NEXTCLOUD_PATH="/var/www/nextcloud"
 
-# Logdateien
+# Log files
 LOGFILE="/var/log/nextcloud_maintenance.log"
 ERROR_LOGFILE="/var/log/nextcloud_error.log"
 
-# Funktion, um OCC-Befehle auszuführen und die Ausgabe sowohl anzuzeigen als auch in das Logfile zu schreiben
+# Function to execute OCC commands and display output both in the terminal and log file
 run_occ_command() {
     sudo -u www-data php "$NEXTCLOUD_PATH/occ" "$@" | tee -a "$LOGFILE"
 }
 
-# Funktion, um Fehlerprotokolle zu erstellen
+# Function to log errors
 log_error() {
     echo -e "${RED}Error: $1${NORMAL}"
     echo "$(date) - $1" | tee -a "$ERROR_LOGFILE"
 }
 
-# Menüstruktur
+# Menu structure
 while true; do
     clear
     echo -e "${BLUE}Nextcloud OCC Command Manager${NORMAL}"
@@ -38,7 +38,7 @@ while true; do
 
     case $choice in
         1)
-            # Benutzerverwaltung
+            # User management
             echo -e "${BLUE}User Management${NORMAL}"
             echo -e "${GREEN}1. Add User${NORMAL}"
             echo -e "${GREEN}2. Delete User${NORMAL}"
@@ -63,7 +63,7 @@ while true; do
             esac
             ;;
         2)
-            # App-Verwaltung
+            # App management
             echo -e "${BLUE}App Management${NORMAL}"
             echo -e "${GREEN}1. Install App${NORMAL}"
             echo -e "${GREEN}2. Remove App${NORMAL}"
@@ -101,7 +101,7 @@ while true; do
             esac
             ;;
         3)
-            # Konfigurationsverwaltung
+            # Configuration settings
             echo -e "${BLUE}Configuration Settings${NORMAL}"
             echo -e "${GREEN}1. Set Max Upload File Size${NORMAL}"
             echo -e "${GREEN}2. Enable/Disable Maintenance Mode${NORMAL}"
@@ -133,7 +133,7 @@ while true; do
             esac
             ;;
         4)
-            # Logs anzeigen
+            # View logs
             echo -e "${BLUE}View Logs${NORMAL}"
             echo -e "${GREEN}1. View General Log${NORMAL}"
             echo -e "${GREEN}2. View Error Log${NORMAL}"
@@ -151,7 +151,7 @@ while true; do
             esac
             ;;
         5)
-            # Beenden
+            # Exit
             echo -e "${GREEN}Exiting the script...${NORMAL}"
             exit 0
             ;;
