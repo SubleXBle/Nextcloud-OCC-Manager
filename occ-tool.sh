@@ -28,7 +28,7 @@ log_error() {
 # Menu structure
 while true; do
     clear
-    echo -e "${BLUE}Nextcloud OCC Command Manager${NORMAL}"
+    echo -e "${BLUE}Nextcloud OCC Command Manager by SubleXBle${NORMAL}"
     echo -e "${GREEN}1. User Management${NORMAL}"
     echo -e "${GREEN}2. App Management${NORMAL}"
     echo -e "${GREEN}3. Configuration Settings${NORMAL}"
