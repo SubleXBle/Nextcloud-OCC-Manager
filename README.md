@@ -22,6 +22,21 @@ This Bash script is designed to interact with Nextcloud's occ (OwnCloud Command)
 + Upload Max Filesize: The administrator can set the maximum upload size for files (in MB).
 + Maintenance Mode: The administrator can toggle Nextcloud's maintenance mode on or off (useful for system upgrades or maintenance tasks).
 
+### Database Operations
++ db:add-missing-indicies is available now
+
+### Filesystem
++ files:scan
+  + --all
+  + --unscanned
++ files:cleanup
++ files:copy
++ files:delete
++ files:get
++ files:move
++ files:put
++ files:reminders
+
 ### Log Viewing:
 
 + View Logs: Displays the most recent entries in both the regular and error log files. This allows administrators to quickly troubleshoot issues or check the history of commands that have been executed via the script.
