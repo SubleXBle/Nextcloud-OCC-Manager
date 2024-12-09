@@ -35,9 +35,10 @@ while true; do
     echo -e "${GREEN}1. User Management${NORMAL}"
     echo -e "${GREEN}2. App Management${NORMAL}"
     echo -e "${GREEN}3. Configuration Settings${NORMAL}"
-    echo -e "${GREEN}4. Database Operations${NORMAL}"    # Neuer Menüpunkt
-    echo -e "${GREEN}5. View Logs${NORMAL}"
-    echo -e "${GREEN}6. Exit${NORMAL}"
+    echo -e "${GREEN}4. Database Operations${NORMAL}"
+    echo -e "${GREEN}5. Filesystem${NORMAL}"              # Neuer Menüpunkt
+    echo -e "${GREEN}6. View Logs${NORMAL}"
+    echo -e "${GREEN}7. Exit${NORMAL}"
     read -p "Please choose an option: " choice
 
     case $choice in
@@ -152,6 +153,35 @@ while true; do
             esac
             ;;
         5)
+            # Filesystem operations
+            echo -e "${BLUE}Filesystem Operations${NORMAL}"
+            echo -e "${GREEN}1. Filescan${NORMAL}"
+            read -p "Please choose an option: " fs_choice
+            case $fs_choice in
+                1)
+                    echo -e "${GREEN}1. Scan all files (--all)${NORMAL}"
+                    echo -e "${GREEN}2. Scan unscanned files (--unscanned)${NORMAL}"
+                    read -p "Please choose an option: " scan_choice
+                    case $scan_choice in
+                        1)
+                            echo -e "${YELLOW}Running files:scan --all...${NORMAL}"
+                            run_occ_command files:scan --all
+                            ;;
+                        2)
+                            echo -e "${YELLOW}Running files:scan --unscanned...${NORMAL}"
+                            run_occ_command files:scan --unscanned
+                            ;;
+                        *)
+                            log_error "Invalid option selected for Filescan."
+                            ;;
+                    esac
+                    ;;
+                *)
+                    log_error "Invalid option selected for Filesystem Operations."
+                    ;;
+            esac
+            ;;
+        6)
             # View logs
             echo -e "${BLUE}View Logs${NORMAL}"
             echo -e "${GREEN}1. View General Log${NORMAL}"
@@ -169,7 +199,7 @@ while true; do
                     ;;
             esac
             ;;
-        6)
+        7)
             # Exit
             echo -e "${GREEN}Exiting the script...${NORMAL}"
             exit 0
