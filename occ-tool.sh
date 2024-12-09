@@ -17,6 +17,9 @@ ERROR_LOGFILE="/var/log/nextcloud_error.log"
 # Function to execute OCC commands and display output both in the terminal and log file
 run_occ_command() {
     sudo -u www-data php "$NEXTCLOUD_PATH/occ" "$@" | tee -a "$LOGFILE"
+    if [[ $? -ne 0 ]]; then
+        log_error "Command failed: occ $*"
+    fi
 }
 
 # Function to log errors
@@ -32,8 +35,9 @@ while true; do
     echo -e "${GREEN}1. User Management${NORMAL}"
     echo -e "${GREEN}2. App Management${NORMAL}"
     echo -e "${GREEN}3. Configuration Settings${NORMAL}"
-    echo -e "${GREEN}4. View Logs${NORMAL}"
-    echo -e "${GREEN}5. Exit${NORMAL}"
+    echo -e "${GREEN}4. Database Operations${NORMAL}"    # Neuer Menüpunkt
+    echo -e "${GREEN}5. View Logs${NORMAL}"
+    echo -e "${GREEN}6. Exit${NORMAL}"
     read -p "Please choose an option: " choice
 
     case $choice in
@@ -133,6 +137,21 @@ while true; do
             esac
             ;;
         4)
+            # Database operations
+            echo -e "${BLUE}Database Operations${NORMAL}"
+            echo -e "${GREEN}1. Add Missing Indices${NORMAL}"
+            read -p "Please choose an option: " db_choice
+            case $db_choice in
+                1)
+                    echo -e "${YELLOW}Running OCC command to add missing indices...${NORMAL}"
+                    run_occ_command db:add-missing-indices
+                    ;;
+                *)
+                    log_error "Invalid option selected for Database Operations."
+                    ;;
+            esac
+            ;;
+        5)
             # View logs
             echo -e "${BLUE}View Logs${NORMAL}"
             echo -e "${GREEN}1. View General Log${NORMAL}"
@@ -140,17 +159,17 @@ while true; do
             read -p "Please choose an option: " log_choice
             case $log_choice in
                 1)
-                    cat "$LOGFILE"
+                    less "$LOGFILE"
                     ;;
                 2)
-                    cat "$ERROR_LOGFILE"
+                    less "$ERROR_LOGFILE"
                     ;;
                 *)
                     log_error "Invalid option selected for View Logs."
                     ;;
             esac
             ;;
-        5)
+        6)
             # Exit
             echo -e "${GREEN}Exiting the script...${NORMAL}"
             exit 0
