@@ -1,229 +1,196 @@
 #!/bin/bash
 
-# Farbcodes
+# Nextcloud OCC Manager
+# A tool for Nextcloud administrators to interact with the OCC CLI via an interactive menu.
+# Use at your own risk! This script comes with no warranty.
+
+# Color codes for output
 NORMAL='\033[0;39m'
 GREEN='\033[1;32m'
 RED='\033[1;31m'
-YELLOW='\033[33m'
-BLUE='\033[34m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
 
-# Logfile-Pfade
+# Path to Nextcloud installation
+NEXTCLOUD_PATH="/var/www/nextcloud"
+
+# Log files
 LOGFILE="/var/log/nextcloud_maintenance.log"
 ERROR_LOGFILE="/var/log/nextcloud_error.log"
 
-# Nextcloud Installation Pfad
-NEXTCLOUD_PATH="/var/www/nextcloud"
-
-# Funktionsdefinitionen
-echo_success() {
-    echo -e "${GREEN}$1${NORMAL}"
-}
-
-echo_error() {
-    echo -e "${RED}$1${NORMAL}"
-}
-
-log_error() {
-    echo -e "${RED}Error: $1${NORMAL}"
-    echo "$(date) - $1" | tee -a "$ERROR_LOGFILE"
-}
-
+# Function to run OCC commands and log the output
 run_occ_command() {
-    local command=$1
-    echo "Führe den Befehl aus: occ $command"
-    sudo -u www-data php "$NEXTCLOUD_PATH/occ" $command >> "$LOGFILE" 2>> "$ERROR_LOGFILE"
-
-    if [ $? -ne 0 ]; then
-        log_error "Fehler bei der Ausführung des Befehls: occ $command. Details im Logfile."
+    COMMAND="sudo -u www-data php $NEXTCLOUD_PATH/occ $*"
+    echo -e "${BLUE}Running command: ${YELLOW}$COMMAND${NORMAL}"
+    OUTPUT=$($COMMAND 2>&1 | tee -a "$LOGFILE")
+    EXIT_CODE=$?
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        log_error "Command failed: occ $*"
+        echo "$OUTPUT" | tee -a "$ERROR_LOGFILE"
     else
-        echo_success "Befehl erfolgreich ausgeführt: occ $command"
+        echo -e "${GREEN}Success:${NORMAL} Command executed successfully."
     fi
 }
 
-# Benutzerverwaltung Menü
-user_management() {
-    while true; do
-        clear
-        echo -e "${YELLOW}Benutzerverwaltung${NORMAL}"
-        echo "1) Benutzer hinzufügen"
-        echo "2) Benutzer löschen"
-        echo "3) Benutzerliste anzeigen"
-        echo "4) Zurück zum Hauptmenü"
-        read -p "Wähle eine Option (1-4): " user_choice
-
-        case $user_choice in
-            1)
-                read -p "Gib den Benutzernamen ein: " username
-                read -p "Gib die E-Mail-Adresse ein: " email
-                run_occ_command "user:add $username $email"
-                ;;
-            2)
-                read -p "Gib den Benutzernamen ein, den du löschen möchtest: " username
-                run_occ_command "user:delete $username"
-                ;;
-            3)
-                run_occ_command "user:list"
-                ;;
-            4)
-                break
-                ;;
-            *)
-                echo_error "Ungültige Auswahl."
-                ;;
-        esac
-    done
+# Function to log errors
+log_error() {
+    echo -e "${RED}Error: $1${NORMAL}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: $1" | tee -a "$ERROR_LOGFILE"
 }
 
-# App-Verwaltung Menü
-app_management() {
-    while true; do
-        clear
-        echo -e "${YELLOW}App-Verwaltung${NORMAL}"
-        echo "1) App installieren"
-        echo "2) App deinstallieren"
-        echo "3) App aktualisieren"
-        echo "4) Zurück zum Hauptmenü"
-        read -p "Wähle eine Option (1-4): " app_choice
-
-        case $app_choice in
-            1)
-                read -p "Gib den App-Namen ein: " app_name
-                run_occ_command "app:install $app_name"
-                ;;
-            2)
-                read -p "Gib den App-Namen ein: " app_name
-                run_occ_command "app:remove $app_name"
-                ;;
-            3)
-                read -p "Möchtest du eine bestimmte App aktualisieren? (yes/no): " update_choice
-                if [ "$update_choice" == "yes" ]; then
-                    read -p "Gib den App-Namen ein: " app_name
-                    run_occ_command "app:update $app_name"
-                else
-                    run_occ_command "app:update --all"
-                fi
-                ;;
-            4)
-                break
-                ;;
-            *)
-                echo_error "Ungültige Auswahl."
-                ;;
-        esac
-    done
-}
-
-# Konfigurationswerte setzen
-set_config_values() {
-    echo -e "${YELLOW}Konfiguration setzen${NORMAL}"
-    echo "1) Wartungsmodus"
-    echo "2) Max. Upload-Größe ändern"
-    echo "3) Zurück zum Hauptmenü"
-    read -p "Wähle eine Option (1-3): " config_choice
-
-    case $config_choice in
-        1)
-            read -p "Wartungsmodus aktivieren (true/false): " maintenance
-            run_occ_command "config:system:set maintenance --value=$maintenance"
-            ;;
-        2)
-            read -p "Neue Upload-Größe (MB): " size
-            run_occ_command "config:system:set upload_max_filesize --value=${size}M"
-            ;;
-        3)
-            return
-            ;;
-        *)
-            echo_error "Ungültige Auswahl."
-            ;;
-    esac
-}
-
-# Dateien-Operationen Menü
-filesystem_operations() {
-    while true; do
-        clear
-        echo -e "${BLUE}Filesystem Operations${NORMAL}"
-        echo "1) Dateien scannen (alle/unscanned)"
-        echo "2) Datei-Cache bereinigen"
-        echo "3) Datei/Ordner kopieren"
-        echo "4) Datei/Ordner löschen"
-        echo "5) Datei-Inhalte anzeigen"
-        echo "6) Datei/Ordner verschieben"
-        echo "7) Zurück zum Hauptmenü"
-        read -p "Wähle eine Option (1-7): " fs_choice
-
-        case $fs_choice in
-            1)
-                read -p "Scannen aller Dateien (--all) oder nur ungescannte (--unscanned): " scan
-                run_occ_command "files:scan $scan"
-                ;;
-            2)
-                run_occ_command "files:cleanup"
-                ;;
-            3)
-                read -p "Quelle: " src
-                read -p "Ziel: " dest
-                run_occ_command "files:copy $src $dest"
-                ;;
-            4)
-                read -p "Pfad zum Löschen: " path
-                run_occ_command "files:delete $path"
-                ;;
-            5)
-                read -p "Dateipfad: " path
-                run_occ_command "files:get $path"
-                ;;
-            6)
-                read -p "Quelle: " src
-                read -p "Ziel: " dest
-                run_occ_command "files:move $src $dest"
-                ;;
-            7)
-                break
-                ;;
-            *)
-                echo_error "Ungültige Auswahl."
-                ;;
-        esac
-    done
-}
-
-# Logs anzeigen
+# Function to display logs
 view_logs() {
-    echo -e "${YELLOW}Logs anzeigen${NORMAL}"
-    echo "1) Allgemeines Log anzeigen"
-    echo "2) Fehler-Log anzeigen"
-    echo "3) Zurück zum Hauptmenü"
-    read -p "Wähle eine Option (1-3): " log_choice
-
+    echo -e "${BLUE}1. View General Log${NORMAL}"
+    echo -e "${BLUE}2. View Error Log${NORMAL}"
+    read -p "Choose an option: " log_choice
     case $log_choice in
         1) less "$LOGFILE" ;;
         2) less "$ERROR_LOGFILE" ;;
-        3) return ;;
-        *) echo_error "Ungültige Auswahl." ;;
+        *) echo -e "${RED}Invalid option.${NORMAL}" ;;
     esac
 }
 
-# Hauptmenü
+# Main menu loop
 while true; do
     clear
-    echo -e "${BLUE}Nextcloud OCC Command Manager${NORMAL}"
-    echo "1) Benutzerverwaltung"
-    echo "2) App-Verwaltung"
-    echo "3) Konfiguration setzen"
-    echo "4) Dateien-Operationen"
-    echo "5) Logs anzeigen"
-    echo "6) Skript beenden"
-    read -p "Wähle eine Option (1-6): " choice
+    echo -e "${BLUE}Nextcloud OCC Manager${NORMAL}"
+    echo -e "${GREEN}1. User Management${NORMAL}"
+    echo -e "${GREEN}2. App Management${NORMAL}"
+    echo -e "${GREEN}3. Configuration Settings${NORMAL}"
+    echo -e "${GREEN}4. Database Operations${NORMAL}"
+    echo -e "${GREEN}5. Filesystem${NORMAL}"
+    echo -e "${GREEN}6. View Logs${NORMAL}"
+    echo -e "${GREEN}7. Exit${NORMAL}"
+    read -p "Please choose an option: " choice
 
     case $choice in
-        1) user_management ;;
-        2) app_management ;;
-        3) set_config_values ;;
-        4) filesystem_operations ;;
-        5) view_logs ;;
-        6) echo_success "Skript wird beendet."; exit 0 ;;
-        *) echo_error "Ungültige Auswahl." ;;
+        1)
+            # User Management
+            echo -e "${BLUE}User Management${NORMAL}"
+            echo -e "${GREEN}1. Add User${NORMAL}"
+            echo -e "${GREEN}2. Delete User${NORMAL}"
+            echo -e "${GREEN}3. List Users${NORMAL}"
+            read -p "Choose an option: " user_choice
+            case $user_choice in
+                1)
+                    read -p "Enter username: " username
+                    read -p "Enter email: " email
+                    run_occ_command user:add --display-name "$username" --email "$email" "$username"
+                    ;;
+                2)
+                    read -p "Enter username to delete: " username
+                    run_occ_command user:delete "$username"
+                    ;;
+                3)
+                    run_occ_command user:list
+                    ;;
+                *)
+                    log_error "Invalid option for User Management."
+                    ;;
+            esac
+            ;;
+        2)
+            # App Management
+            echo -e "${BLUE}App Management${NORMAL}"
+            echo -e "${GREEN}1. Install App${NORMAL}"
+            echo -e "${GREEN}2. Remove App${NORMAL}"
+            echo -e "${GREEN}3. Update Apps${NORMAL}"
+            read -p "Choose an option: " app_choice
+            case $app_choice in
+                1)
+                    read -p "Enter app name to install: " app_name
+                    run_occ_command app:install "$app_name"
+                    ;;
+                2)
+                    read -p "Enter app name to remove: " app_name
+                    run_occ_command app:remove "$app_name"
+                    ;;
+                3)
+                    read -p "Update all apps? (yes/no): " update_choice
+                    if [[ "$update_choice" == "yes" ]]; then
+                        run_occ_command app:update --all
+                    else
+                        read -p "Enter app name to update: " app_name
+                        run_occ_command app:update "$app_name"
+                    fi
+                    ;;
+                *)
+                    log_error "Invalid option for App Management."
+                    ;;
+            esac
+            ;;
+        3)
+            # Configuration Settings
+            echo -e "${BLUE}Configuration Settings${NORMAL}"
+            echo -e "${GREEN}1. Toggle Maintenance Mode${NORMAL}"
+            echo -e "${GREEN}2. Set Upload Max Filesize${NORMAL}"
+            read -p "Choose an option: " config_choice
+            case $config_choice in
+                1)
+                    read -p "Enable maintenance mode? (yes/no): " maintenance
+                    if [[ "$maintenance" == "yes" ]]; then
+                        run_occ_command maintenance:mode --on
+                    else
+                        run_occ_command maintenance:mode --off
+                    fi
+                    ;;
+                2)
+                    read -p "Enter max upload size in MB: " size
+                    run_occ_command config:system:set upload_max_filesize --value="${size}M"
+                    ;;
+                *)
+                    log_error "Invalid option for Configuration Settings."
+                    ;;
+            esac
+            ;;
+        4)
+            # Database Operations
+            echo -e "${BLUE}Database Operations${NORMAL}"
+            echo -e "${GREEN}1. Add Missing Indices${NORMAL}"
+            read -p "Choose an option: " db_choice
+            case $db_choice in
+                1)
+                    run_occ_command db:add-missing-indices
+                    ;;
+                *)
+                    log_error "Invalid option for Database Operations."
+                    ;;
+            esac
+            ;;
+        5)
+            # Filesystem
+            echo -e "${BLUE}Filesystem Operations${NORMAL}"
+            echo -e "${GREEN}1. Scan Files (--all)${NORMAL}"
+            echo -e "${GREEN}2. Scan Unscanned Files${NORMAL}"
+            echo -e "${GREEN}3. Cleanup File Cache${NORMAL}"
+            read -p "Choose an option: " fs_choice
+            case $fs_choice in
+                1)
+                    run_occ_command files:scan --all
+                    ;;
+                2)
+                    run_occ_command files:scan --unscanned
+                    ;;
+                3)
+                    run_occ_command files:cleanup
+                    ;;
+                *)
+                    log_error "Invalid option for Filesystem Operations."
+                    ;;
+            esac
+            ;;
+        6)
+            # View Logs
+            view_logs
+            ;;
+        7)
+            # Exit
+            echo -e "${GREEN}Exiting...${NORMAL}"
+            exit 0
+            ;;
+        *)
+            log_error "Invalid option selected."
+            ;;
     esac
+    read -p "Press any key to return to the main menu..." -n 1 -s
 done
