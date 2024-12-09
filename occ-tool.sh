@@ -36,150 +36,79 @@ while true; do
     echo -e "${GREEN}2. App Management${NORMAL}"
     echo -e "${GREEN}3. Configuration Settings${NORMAL}"
     echo -e "${GREEN}4. Database Operations${NORMAL}"
-    echo -e "${GREEN}5. Filesystem${NORMAL}"              # Neuer Menüpunkt
+    echo -e "${GREEN}5. Filesystem${NORMAL}"
     echo -e "${GREEN}6. View Logs${NORMAL}"
     echo -e "${GREEN}7. Exit${NORMAL}"
     read -p "Please choose an option: " choice
 
     case $choice in
-        1)
-            # User management
-            echo -e "${BLUE}User Management${NORMAL}"
-            echo -e "${GREEN}1. Add User${NORMAL}"
-            echo -e "${GREEN}2. Delete User${NORMAL}"
-            echo -e "${GREEN}3. List Users${NORMAL}"
-            read -p "Please choose an option: " user_choice
-            case $user_choice in
-                1)
-                    read -p "Enter the username: " username
-                    read -p "Enter the email address: " email
-                    run_occ_command user:add "$username" "$email"
-                    ;;
-                2)
-                    read -p "Enter the username to delete: " username
-                    run_occ_command user:delete "$username"
-                    ;;
-                3)
-                    run_occ_command user:list
-                    ;;
-                *)
-                    log_error "Invalid option selected for User Management."
-                    ;;
-            esac
-            ;;
-        2)
-            # App management
-            echo -e "${BLUE}App Management${NORMAL}"
-            echo -e "${GREEN}1. Install App${NORMAL}"
-            echo -e "${GREEN}2. Remove App${NORMAL}"
-            echo -e "${GREEN}3. Update App${NORMAL}"
-            read -p "Please choose an option: " app_choice
-            case $app_choice in
-                1)
-                    read -p "Enter the app name to install: " app_name
-                    run_occ_command app:install "$app_name"
-                    ;;
-                2)
-                    read -p "Enter the app name to remove: " app_name
-                    run_occ_command app:remove "$app_name"
-                    ;;
-                3)
-                    echo -e "${GREEN}1. Update a specific app${NORMAL}"
-                    echo -e "${GREEN}2. Update all apps${NORMAL}"
-                    read -p "Please choose an option: " app_update_choice
-                    case $app_update_choice in
-                        1)
-                            read -p "Enter the app name to update: " app_name
-                            run_occ_command app:update "$app_name"
-                            ;;
-                        2)
-                            run_occ_command app:update --all
-                            ;;
-                        *)
-                            log_error "Invalid option selected for App Update."
-                            ;;
-                    esac
-                    ;;
-                *)
-                    log_error "Invalid option selected for App Management."
-                    ;;
-            esac
-            ;;
-        3)
-            # Configuration settings
-            echo -e "${BLUE}Configuration Settings${NORMAL}"
-            echo -e "${GREEN}1. Set Max Upload File Size${NORMAL}"
-            echo -e "${GREEN}2. Enable/Disable Maintenance Mode${NORMAL}"
-            read -p "Please choose an option: " config_choice
-            case $config_choice in
-                1)
-                    read -p "Enter the max upload file size in MB: " size
-                    run_occ_command config:system:set php.memory_limit --value="$size"
-                    ;;
-                2)
-                    echo -e "${GREEN}1. Enable Maintenance Mode${NORMAL}"
-                    echo -e "${GREEN}2. Disable Maintenance Mode${NORMAL}"
-                    read -p "Please choose an option: " maintenance_choice
-                    case $maintenance_choice in
-                        1)
-                            run_occ_command maintenance:mode --on
-                            ;;
-                        2)
-                            run_occ_command maintenance:mode --off
-                            ;;
-                        *)
-                            log_error "Invalid option selected for Maintenance Mode."
-                            ;;
-                    esac
-                    ;;
-                *)
-                    log_error "Invalid option selected for Configuration Settings."
-                    ;;
-            esac
-            ;;
-        4)
-            # Database operations
-            echo -e "${BLUE}Database Operations${NORMAL}"
-            echo -e "${GREEN}1. Add Missing Indices${NORMAL}"
-            read -p "Please choose an option: " db_choice
-            case $db_choice in
-                1)
-                    echo -e "${YELLOW}Running OCC command to add missing indices...${NORMAL}"
-                    run_occ_command db:add-missing-indices
-                    ;;
-                *)
-                    log_error "Invalid option selected for Database Operations."
-                    ;;
-            esac
-            ;;
         5)
             # Filesystem operations
-            echo -e "${BLUE}Filesystem Operations${NORMAL}"
-            echo -e "${GREEN}1. Filescan${NORMAL}"
-            read -p "Please choose an option: " fs_choice
-            case $fs_choice in
-                1)
-                    echo -e "${GREEN}1. Scan all files (--all)${NORMAL}"
-                    echo -e "${GREEN}2. Scan unscanned files (--unscanned)${NORMAL}"
-                    read -p "Please choose an option: " scan_choice
-                    case $scan_choice in
-                        1)
-                            echo -e "${YELLOW}Running files:scan --all...${NORMAL}"
-                            run_occ_command files:scan --all
-                            ;;
-                        2)
-                            echo -e "${YELLOW}Running files:scan --unscanned...${NORMAL}"
-                            run_occ_command files:scan --unscanned
-                            ;;
-                        *)
-                            log_error "Invalid option selected for Filescan."
-                            ;;
-                    esac
-                    ;;
-                *)
-                    log_error "Invalid option selected for Filesystem Operations."
-                    ;;
-            esac
+            while true; do
+                clear
+                echo -e "${BLUE}Filesystem Operations${NORMAL}"
+                echo -e "${GREEN}1. Filescan (--all, --unscanned)${NORMAL}"
+                echo -e "${GREEN}2. Cleanup Filecache (files:cleanup)${NORMAL}"
+                echo -e "${GREEN}3. Copy a File/Folder (files:copy)${NORMAL}"
+                echo -e "${GREEN}4. Delete a File/Folder (files:delete)${NORMAL}"
+                echo -e "${GREEN}5. Get File Contents (files:get)${NORMAL}"
+                echo -e "${GREEN}6. Move a File/Folder (files:move)${NORMAL}"
+                echo -e "${GREEN}7. Write Contents to a File (files:put)${NORMAL}"
+                echo -e "${GREEN}8. List File Reminders (files:reminders)${NORMAL}"
+                echo -e "${GREEN}9. Back to Main Menu${NORMAL}"
+                read -p "Please choose an option: " fs_choice
+
+                case $fs_choice in
+                    1)
+                        echo -e "${GREEN}1. Scan all files (--all)${NORMAL}"
+                        echo -e "${GREEN}2. Scan unscanned files (--unscanned)${NORMAL}"
+                        read -p "Please choose an option: " scan_choice
+                        case $scan_choice in
+                            1) run_occ_command files:scan --all ;;
+                            2) run_occ_command files:scan --unscanned ;;
+                            *) log_error "Invalid option for Filescan." ;;
+                        esac
+                        ;;
+                    2)
+                        echo -e "${YELLOW}Cleaning up filecache...${NORMAL}"
+                        run_occ_command files:cleanup
+                        ;;
+                    3)
+                        read -p "Source file/folder path: " source
+                        read -p "Destination path: " destination
+                        run_occ_command files:copy "$source" "$destination"
+                        ;;
+                    4)
+                        read -p "File/folder path to delete: " path
+                        run_occ_command files:delete "$path"
+                        ;;
+                    5)
+                        read -p "File path to retrieve contents: " path
+                        run_occ_command files:get "$path"
+                        ;;
+                    6)
+                        read -p "Source file/folder path: " source
+                        read -p "Destination path: " destination
+                        run_occ_command files:move "$source" "$destination"
+                        ;;
+                    7)
+                        read -p "File path to write contents to: " path
+                        read -p "Enter the contents (use quotes for multiple words): " content
+                        run_occ_command files:put "$path" "$content"
+                        ;;
+                    8)
+                        echo -e "${YELLOW}Listing file reminders...${NORMAL}"
+                        run_occ_command files:reminders
+                        ;;
+                    9)
+                        break
+                        ;;
+                    *)
+                        log_error "Invalid option selected for Filesystem Operations."
+                        ;;
+                esac
+                read -p "Press any key to return to the Filesystem menu..." -n 1 -s
+            done
             ;;
         6)
             # View logs
@@ -188,15 +117,9 @@ while true; do
             echo -e "${GREEN}2. View Error Log${NORMAL}"
             read -p "Please choose an option: " log_choice
             case $log_choice in
-                1)
-                    less "$LOGFILE"
-                    ;;
-                2)
-                    less "$ERROR_LOGFILE"
-                    ;;
-                *)
-                    log_error "Invalid option selected for View Logs."
-                    ;;
+                1) less "$LOGFILE" ;;
+                2) less "$ERROR_LOGFILE" ;;
+                *) log_error "Invalid option selected for View Logs." ;;
             esac
             ;;
         7)
