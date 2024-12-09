@@ -213,12 +213,11 @@ filesystem_operations() {
     case $choice in
         1) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --all" ;;
         2) 
-            # Prompt for user ID or --all option
             read -p "Enter user ID or type 'all' to scan for all users: " user_id
             if [ "$user_id" == "all" ]; then
                 run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --unscanned --all"
             else
-                run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --unscanned --user=$user_id"
+                run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --unscanned $user_id"
             fi
             ;;
         3) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:cleanup" ;;
@@ -228,6 +227,7 @@ filesystem_operations() {
         *) echo "Invalid option"; filesystem_operations ;;
     esac
 }
+
 
 # View logs function
 view_logs() {
