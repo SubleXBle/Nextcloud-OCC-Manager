@@ -212,7 +212,15 @@ filesystem_operations() {
 
     case $choice in
         1) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --all" ;;
-        2) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --unscanned" ;;
+        2) 
+            # Prompt for user ID or --all option
+            read -p "Enter user ID or type 'all' to scan for all users: " user_id
+            if [ "$user_id" == "all" ]; then
+                run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --unscanned --all"
+            else
+                run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:scan --unscanned --user=$user_id"
+            fi
+            ;;
         3) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:cleanup" ;;
         4) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:copy" ;;
         5) run_command "sudo -u www-data php $NEXTCLOUD_PATH/occ files:delete" ;;
@@ -233,4 +241,3 @@ view_logs() {
 
 # Start the script
 main_menu
-
