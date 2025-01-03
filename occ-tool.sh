@@ -239,5 +239,10 @@ view_logs() {
     main_menu
 }
 
+greetings() {
+    echo -e "${BLUE}OCC-Tool by SubleXble"${NORMAL}
+}
+
 # Start the script
+greetings
 main_menu
